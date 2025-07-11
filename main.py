@@ -11,7 +11,7 @@ import src
 # my variables
 SERIAL_PORT = "COM3"
 BAUD_RATE = 2_000_000
-NO_BYTES = 4
+NO_BYTES = 3712
   
 MAX_PROGRESS = 24
 
@@ -67,32 +67,18 @@ def mymainpage():
     # )
 
     if st.button("Capture Data", type="primary"):
-        try:
-            with serial.Serial(SERIAL_PORT, BAUD_RATE, timeout=1) as ser:
-                # Send the character 'U'
-                ser.write(b'U')
-                st.write("Sent: 'U'")
-
-                # Read response (up to 1 byte)
-                received = ser.read(NO_BYTES)
-                if received:
-                    # print(f"Received: {received.decode(errors='replace')}")
-                    st.write(Received)
-                    chart_data = pd.DataFrame(
-                        np.random.randn(20, 1),
-                        columns=[
-                            "a",
-                        ],
-                    )
-                    st.line_chart(chart_data)
-                else:
-                    st.write("No data received.")
-                
-                
-
-        except serial.SerialException as e:
-            # st.write(f"Serial error: {e}")
-            st.write(f'Serial Error')
+        with st.spinner("Wait for it...", show_time=True):
+            df = src.read_frame(
+                        serial_port=SERIAL_PORT,
+                        no_bytes=NO_BYTES,
+                        baud_rate=BAUD_RATE,
+                        timeout=1,
+                )
+        if df is not None:
+            st.write("Data captured successfully!")
+            st.line_chart(df)
+        else: 
+            st.error("Failed to capture data. Please check the connection and try again.")
 
 def main():
     st.set_page_config(
