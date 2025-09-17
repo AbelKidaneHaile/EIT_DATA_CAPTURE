@@ -17,8 +17,8 @@ def read_frame_sq(serial_port, no_bytes, baud_rate=2_000_000, timeout=1):
                 Channel_B = []
 
                 for i in range(0, len(data) - 3, 4):
-                    val_A = (data[i] << 7) + data[i + 1]
-                    val_B = (data[i + 2] << 7) + data[i + 3]
+                    val_A = (np.int64(data[i]) << 7) + np.int64(data[i + 1])
+                    val_B = (np.int64(data[i + 2]) << 7) + np.int64(data[i + 3])
                     Channel_A.append(val_A * 0.0001220852155)
                     Channel_B.append(val_B * 0.0001220852155)
 
