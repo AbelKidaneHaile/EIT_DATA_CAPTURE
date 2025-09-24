@@ -15,7 +15,6 @@ import src
 SERIAL_PORT = "COM3"
 BAUD_RATE = 2_000_000
 NO_BYTES = 512  # 512 # 3712 #
-EXCITATION_PATTERN = "shortened_opposite_side"  # or "square_wave"
 MAX_PROGRESS = 24
 
 # streamlit customization
@@ -30,9 +29,7 @@ arduino = st.session_state["arduino"]
 
 def stream_plot(df, i, plot_placeholder):
     fig = go.Figure()
-    fig.add_trace(
-        go.Scatter(y=df["Channel_A"], mode="lines", name="Channel A")
-    )  # , line=dict(color="cyan")
+    fig.add_trace(go.Scatter(y=df["Channel_A"], mode="lines", name="Channel A"))  # , line=dict(color="cyan")
     # fig.add_trace(go.Scatter(y=df["Channel_B"], mode='lines', name='Channel B'))
     # fig.add_trace(go.Scatter(y=df["Channel_C"], mode='lines', name='Channel C'))
 
@@ -56,9 +53,12 @@ def stream_plot(df, i, plot_placeholder):
 
 def mysidebar():
     with st.sidebar:
-        st.header("Settings")
-
-        time_input = st.sidebar.text_input("Enter time (0–16):", "1")
+        st.header("Arduino Control Panel (manual)")
+        if arduino.board:
+            st.badge("Arduino Board Connected", icon=":material/check:", color="green")
+        else:
+            st.error("Arduino Not Connected")
+        time_input = st.sidebar.text_input("Enter time (recommended 0–16):", "1")
         # Validate input
         try:
             time_val = int(time_input)
@@ -94,47 +94,50 @@ def mysidebar():
 
 def mymainpage():
 
-    st.title("Data Capture")
+    st.title("Automated Data Capture")
     if "progress" not in st.session_state:
         st.session_state.progress = 0
+    # input the number of classes
+    class_number = st.number_input(
+        "Enter the number of classes (starting from class-0):",
+        min_value=0,
+        step=1,         # Increment step
+        value=0         # Default value
+    )
+    
+    iteration_number = st.number_input(
+        "Enter the number of captures/iterations per class:",
+        min_value=1,
+        step=10,         # Increment step
+        value=100        # Default value
+    )
 
     if st.button("Capture Data", type="primary"):
         plot_placeholder = st.empty()
-        for i in range(10000):
-            with st.spinner("Wait for it...", show_time=True):
-                df = src.read_frame_opp(
-                    serial_port=SERIAL_PORT,
-                    no_bytes=NO_BYTES,
-                    baud_rate=BAUD_RATE,
-                    timeout=1,
-                )
+        for i in range(class_number):
+            for j in range(10000):
+                with st.spinner("Wait for it...", show_time=True):
+                    df = src.read_frame_opp(
+                        serial_port=SERIAL_PORT,
+                        no_bytes=NO_BYTES,
+                        baud_rate=BAUD_RATE,
+                        timeout=1,
+                    )
 
-                # df = src.read_frame_serial(
-                #     serial_port=SERIAL_PORT,
-                #     no_bytes=NO_BYTES,
-                #     baud_rate=BAUD_RATE,
-                #     timeout=1,
-                # )
-
-                # df = src.read_frame_sq(
-                #     serial_port=SERIAL_PORT,
-                #     no_bytes=NO_BYTES,
-                #     baud_rate=BAUD_RATE,
-                #     timeout=2,
-                # )
-
-            if df is not None:
-                stream_plot(df, i, plot_placeholder)
-                # st.line_chart(df)
-            else:
-                st.error(
-                    "Failed to capture data. Please check the connection and try again."
-                )
+                if df is not None:
+                    stream_plot(df, i, plot_placeholder)                    
+                    
+                    # save the data 
+                    
+                else:
+                    st.error(
+                        "Failed to capture data. Please check the connection and try again."
+                    )
 
 
 def main():
     st.set_page_config(
-        page_title="Data Capture",
+        page_title="Automated Data Capture",
         page_icon="🎈",
     )
     mymainpage()
