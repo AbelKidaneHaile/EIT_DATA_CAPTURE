@@ -27,7 +27,7 @@ if "arduino" not in st.session_state:
 
 arduino = st.session_state["arduino"]
 
-def stream_plot(df, i, plot_placeholder):
+def stream_plot(df, i, j, plot_placeholder):
     fig = go.Figure()
     fig.add_trace(go.Scatter(y=df["Channel_A"], mode="lines", name="Channel A"))  # , line=dict(color="cyan")
     # fig.add_trace(go.Scatter(y=df["Channel_B"], mode='lines', name='Channel B'))
@@ -39,7 +39,7 @@ def stream_plot(df, i, plot_placeholder):
         )
     # fig.add_trace(go.Histogram( x=df.index,  y=df["Channel_A"],  name="Channel A", histfunc="sum",xbins=dict(size=3) ) )
     fig.update_layout(
-        title=f"Frame-{i}",
+        title=f"Class-{i} Frame-{j}",
         xaxis_title="Sequence Index",
         yaxis_title="Voltage",
         legend=dict(title="Channels"),
@@ -97,7 +97,15 @@ def mymainpage():
     st.title("Automated Data Capture")
     if "progress" not in st.session_state:
         st.session_state.progress = 0
-    # input the number of classes
+    
+    
+    experiment_number = st.number_input(
+        "Enter the experiment number:",
+        min_value=0,
+        step=1,         # Increment step
+        value=0         # Default value
+    )
+    
     class_number = st.number_input(
         "Enter the number of classes (starting from class-0):",
         min_value=0,
@@ -114,8 +122,16 @@ def mymainpage():
 
     if st.button("Capture Data", type="primary"):
         plot_placeholder = st.empty()
+        ##--------------------------------------------------------------------------Data Capture Iterations
+        # Empty the balloons
+        arduino.deflate(20)
+        
         for i in range(class_number):
-            for j in range(10000):
+            # define the saving paths here
+            src.create_folder(experiment_number, i)
+            saving_folder = f"Data/Experiment_{experiment_number}/Class_{i}"
+            for j in range(iteration_number):
+                arduino.inflate(i)
                 with st.spinner("Wait for it...", show_time=True):
                     df = src.read_frame_opp(
                         serial_port=SERIAL_PORT,
@@ -125,14 +141,17 @@ def mymainpage():
                     )
 
                 if df is not None:
-                    stream_plot(df, i, plot_placeholder)                    
-                    
-                    # save the data 
-                    
+                    stream_plot(df, i, j, plot_placeholder)                    
+                    # save the data
+                    src.save_channels_to_excel(saving_folder, df)
+
                 else:
                     st.error(
                         "Failed to capture data. Please check the connection and try again."
                     )
+                arduino.deflate(i+20)  # deflate a bit more to be safe
+                
+        st.toast("Process Completed!", icon="👍")
 
 
 def main():
