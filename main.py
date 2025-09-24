@@ -30,8 +30,8 @@ arduino = st.session_state["arduino"]
 def stream_plot(df, i, j, plot_placeholder):
     fig = go.Figure()
     fig.add_trace(go.Scatter(y=df["Channel_A"], mode="lines", name="Channel A"))  # , line=dict(color="cyan")
-    # fig.add_trace(go.Scatter(y=df["Channel_B"], mode='lines', name='Channel B'))
-    # fig.add_trace(go.Scatter(y=df["Channel_C"], mode='lines', name='Channel C'))
+    fig.add_trace(go.Scatter(y=df["Channel_B"], mode='lines', name='Channel B'))
+    fig.add_trace(go.Scatter(y=df["Channel_C"], mode='lines', name='Channel C'))
 
     for x in range(0, len(df), 4):
         fig.add_vline(
@@ -124,14 +124,15 @@ def mymainpage():
         plot_placeholder = st.empty()
         ##--------------------------------------------------------------------------Data Capture Iterations
         # Empty the balloons
-        arduino.deflate(20)
+        # arduino.deflate(20) # this is just to make sure the balloons are empty before starting
         
         for i in range(class_number):
             # define the saving paths here
             src.create_folder(experiment_number, i)
             saving_folder = f"Data/Experiment_{experiment_number}/Class_{i}"
             for j in range(iteration_number):
-                arduino.inflate(i)
+                if i!=0:
+                    arduino.inflate(i)
                 with st.spinner("Wait for it...", show_time=True):
                     df = src.read_frame_opp(
                         serial_port=SERIAL_PORT,
@@ -149,7 +150,8 @@ def mymainpage():
                     st.error(
                         "Failed to capture data. Please check the connection and try again."
                     )
-                arduino.deflate(i+20)  # deflate a bit more to be safe
+                if i!=0:
+                    arduino.deflate(i+20)  # deflate a bit more to be safe
                 
         st.toast("Process Completed!", icon="👍")
 

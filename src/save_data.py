@@ -23,11 +23,11 @@ def create_excel_if_not_exists(directory, filename, sheet_name="Sheet1"):
         print(f"Excel file already exists: {file_path}")
     
     return file_path
-
+#-------------------------------------------------------------------------------------------------------------
 def save_channels_to_excel(folder_path, df):
     """
     Save columns Channel_A, Channel_B, Channel_C from a dataframe to separate Excel files.
-    Each new row is appended. Files are created if they don't exist.
+    Each function call adds ONE ROW to each file containing all values from that column.
     
     Parameters:
         folder_path (str): Directory to save the Excel files.
@@ -44,23 +44,26 @@ def save_channels_to_excel(folder_path, df):
     }
     
     for column, filename in column_file_map.items():
+        if column not in df.columns:
+            continue
+            
         file_path = os.path.join(folder_path, filename)
-        # Prepare the row to append
-        row_df = pd.DataFrame([df[column].values])
+        
+        # Convert the entire column to a single row (transpose the column)
+        column_values = df[column].tolist()  # Get all values from the column
+        new_row = pd.DataFrame([column_values])  # Create single row with all values
         
         if os.path.exists(file_path):
-            # Append to existing file
-            with pd.ExcelWriter(file_path, engine='openpyxl', mode='a', if_sheet_exists='overlay') as writer:
-                # Load existing data to find next row
-                try:
-                    existing_df = pd.read_excel(file_path)
-                    startrow = len(existing_df)
-                except:
-                    startrow = 0
-                row_df.to_excel(writer, index=False, header=False, startrow=startrow)
+            # Read existing data and append new row
+            try:
+                existing_df = pd.read_excel(file_path, header=None)  # No headers since we're storing raw data
+                updated_df = pd.concat([existing_df, new_row], ignore_index=True)
+            except Exception as e:
+                print(f"Error reading {file_path}: {e}")
+                updated_df = new_row
         else:
-            # Create new file with header
-            row_df.to_excel(file_path, index=False)
-    
+            # File doesn't exist, create it with the new row
+            updated_df = new_row
         
-        
+        # Save without headers since each row represents a complete dataset
+        updated_df.to_excel(file_path, index=False, header=False)
