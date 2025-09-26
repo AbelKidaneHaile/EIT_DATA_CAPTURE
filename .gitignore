@@ -8,9 +8,10 @@ __pycache__/
 
 # Data acquired from the experiments
 Data/
-
+model/
 # custom snippets
 test.ipynb
+dataanalysis.ipynb
 # Distribution / packaging
 .Python
 build/

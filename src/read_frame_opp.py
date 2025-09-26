@@ -10,7 +10,7 @@ def read_frame_serial(serial_port, no_bytes, baud_rate=2_000_000, timeout=1):
             data = ser.read(no_bytes)
             if data:
                 data = np.frombuffer(data, dtype=np.uint8)
-                print("\n\n", len(data), data)
+                # print("\n\n", len(data), data)
                 sequence_numbers = []
                 for i in range(0, len(data) - 3, 4):
                     seq_num = data[i]
@@ -34,7 +34,7 @@ def read_frame_opp(serial_port, no_bytes, baud_rate=2_000_000, timeout=1):
             if data:
                 data = np.frombuffer(data, dtype=np.uint8)
 
-                print("\n\n", len(data), data)
+                # print("\n\n", len(data), data)
                 # Extract Channels
                 Channel_A = []
                 Channel_B = []

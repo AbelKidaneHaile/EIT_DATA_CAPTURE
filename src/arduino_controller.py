@@ -1,11 +1,13 @@
-import pyfirmata
 import time
 
-# Port number declaration 
+import pyfirmata
+
+# Port number declaration
 L1_In = 2  # Relay One
 L1_Ex = 3  # Relay Two
 L2_In = 4  # Relay Three
 L2_Ex = 5  # Relay Four
+
 
 class ArduinoController:
     def __init__(self, port="COM5"):
@@ -20,7 +22,7 @@ class ArduinoController:
             it = pyfirmata.util.Iterator(self.board)
             it.start()
             print(f"[INFO] Connected to Arduino on {self.port}")
-            
+
             self.board.digital[L1_In].mode = pyfirmata.OUTPUT
             self.board.digital[L1_Ex].mode = pyfirmata.OUTPUT
             self.board.digital[L2_In].mode = pyfirmata.OUTPUT
@@ -35,7 +37,7 @@ class ArduinoController:
             self.board.digital[L1_Ex].write(0)
             self.board.digital[L2_In].write(0)
             self.board.digital[L2_Ex].write(0)
-            time.sleep(1)  # Ensure all commands are sent before exiting            
+            time.sleep(1)  # Ensure all commands are sent before exiting
             self.board.exit()
             print("[INFO] Disconnected from Arduino")
 
@@ -49,15 +51,15 @@ class ArduinoController:
         self.board.digital[L1_Ex].write(0)
         self.board.digital[L2_In].write(1)
         self.board.digital[L2_Ex].write(0)
-        
+
         time.sleep(duration)
-        
+
         # self.board.digital[self.pin_inflate].write(0)  # Set pin low
         self.board.digital[L1_In].write(0)
         self.board.digital[L1_Ex].write(0)
         self.board.digital[L2_In].write(0)
         self.board.digital[L2_Ex].write(0)
-        
+
         print("[INFO] Inflation complete")
 
     def deflate(self, duration):
@@ -70,13 +72,13 @@ class ArduinoController:
         self.board.digital[L1_Ex].write(1)
         self.board.digital[L2_In].write(0)
         self.board.digital[L2_Ex].write(1)
-        
+
         time.sleep(duration)
-        
+
         # self.board.digital[self.pin_deflate].write(0)  # Set pin low
         self.board.digital[L1_In].write(0)
         self.board.digital[L1_Ex].write(0)
         self.board.digital[L2_In].write(0)
         self.board.digital[L2_Ex].write(0)
-        
+
         print("[INFO] Deflation complete")
