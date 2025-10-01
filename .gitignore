@@ -12,6 +12,13 @@ model/
 # custom snippets
 test.ipynb
 dataanalysis.ipynb
+test.py 
+ttest.py
+gradioapp.py 
+gradio2app.py 
+graphical_neural_networks.ipynb 
+main2.py 
+triple.py
 # Distribution / packaging
 .Python
 build/
