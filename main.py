@@ -56,7 +56,7 @@ def mysidebar():
         else:
             st.error("Arduino Not Connected")
         time_input = st.sidebar.text_input("Enter time (recommended 0–16):", "1")
-        # Validate input
+        # input validation
         try:
             time_val = int(time_input)
             if time_val < 0:
@@ -71,7 +71,6 @@ def mysidebar():
             st.sidebar.warning("Please enter a valid integer.")
             time_val = 0
 
-        # Inflate and Deflate logic
         if st.sidebar.button("Inflate"):
             try:
                 arduino.inflate(int(time_input))
@@ -107,22 +106,22 @@ def mymainpage():
     experiment_number = st.number_input(
         "Enter the experiment number:",
         min_value=0,
-        step=1,         # Increment step
-        value=0         # Default value
+        step=1,         # increment step
+        value=0         # default value
     )
 
     class_number = st.number_input(
         "Enter the number of classes (starting from class-0):",
         min_value=0,
-        step=1,         # Increment step
-        value=0         # Default value
+        step=1,         # increment step
+        value=0         # default value
     )
 
     iteration_number = st.number_input(
         "Enter the number of captures/iterations per class:",
         min_value=1,
-        step=10,         # Increment step
-        value=100        # Default value
+        step=10,        
+        value=100      
     )
 
     if st.button("Capture Data", type="primary"):
