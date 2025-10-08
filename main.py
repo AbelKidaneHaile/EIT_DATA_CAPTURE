@@ -1,4 +1,5 @@
 import time
+import winsound
 
 import numpy as np
 import pandas as pd
@@ -27,11 +28,14 @@ if "arduino" not in st.session_state:
 
 arduino = st.session_state["arduino"]
 
+
 def stream_plot(df, i, j, plot_placeholder):
     fig = go.Figure()
-    fig.add_trace(go.Scatter(y=df["Channel_A"], mode="lines", name="Channel A"))  # , line=dict(color="cyan")
-    fig.add_trace(go.Scatter(y=df["Channel_B"], mode='lines', name='Channel B'))
-    fig.add_trace(go.Scatter(y=df["Channel_C"], mode='lines', name='Channel C'))
+    fig.add_trace(
+        go.Scatter(y=df["Channel_A"], mode="lines", name="Channel A")
+    )  # , line=dict(color="cyan")
+    fig.add_trace(go.Scatter(y=df["Channel_B"], mode="lines", name="Channel B"))
+    fig.add_trace(go.Scatter(y=df["Channel_C"], mode="lines", name="Channel C"))
 
     for x in range(0, len(df), 4):
         fig.add_vline(
@@ -43,9 +47,10 @@ def stream_plot(df, i, j, plot_placeholder):
         yaxis_title="Voltage",
         legend=dict(title="Channels"),
     )
+    
+    # fig.update_yaxes(range=[0, 1])
 
     plot_placeholder.plotly_chart(fig, use_container_width=True)
-
 
 
 def mysidebar():
@@ -64,9 +69,9 @@ def mysidebar():
                 time_val = 0
             # elif time_val > (16 - st.session_state.progress):
             #     time_val = 1
-                # st.sidebar.warning(
-                #     f"Time must not be above {16}. This could lead to overinflation."
-                # )
+            # st.sidebar.warning(
+            #     f"Time must not be above {16}. This could lead to overinflation."
+            # )
         except ValueError:
             st.sidebar.warning("Please enter a valid integer.")
             time_val = 0
@@ -86,7 +91,7 @@ def mysidebar():
                 st.session_state.progress = max(st.session_state.progress - time_val, 0)
             except Exception as e:
                 st.sidebar.error(f"Error during deflation: {e}")
-                
+
         if st.sidebar.button("Deflate (25s)"):
             empty_sec = 25
             try:
@@ -102,59 +107,67 @@ def mymainpage():
     if "progress" not in st.session_state:
         st.session_state.progress = 0
 
-
     experiment_number = st.number_input(
         "Enter the experiment number:",
         min_value=0,
-        step=1,         # increment step
-        value=0         # default value
+        step=1,  # increment step
+        value=0,  # default value
     )
 
     class_number = st.number_input(
         "Enter the number of classes (starting from class-0):",
         min_value=0,
-        step=1,         # increment step
-        value=0         # default value
+        step=1,  # increment step
+        value=0,  # default value
     )
 
     iteration_number = st.number_input(
         "Enter the number of captures/iterations per class:",
         min_value=1,
-        step=10,        
-        value=100      
+        step=10,
+        value=100,
     )
 
     if st.button("Capture Data", type="primary"):
+        text_placeholder = st.empty()
         plot_placeholder = st.empty()
         ##--------------------------------------------------------------------------Data Capture Iterations
         # Empty the balloons
         # arduino.deflate(20)
 
-        for i in range(0, class_number):
+        for j in range(iteration_number):
             # define the saving paths here
-            src.create_folder(experiment_number, i)
-            saving_folder = f"Data/Experiment_{experiment_number}/Class_{i}"
-            for j in range(iteration_number):
-                if i!=0:
+            # src.create_folder(experiment_number, i)
+            # saving_folder = f"Data/Experiment_{experiment_number}/Class_{i}"
+            for i in range(class_number):
+                src.create_folder(experiment_number, i)
+                saving_folder = f"Data/Experiment_{experiment_number}/Class_{i}"
+                if i != 0:
                     arduino.inflate(i)
                 with st.spinner("Wait for it...", show_time=True):
                     df = src.read_frame_opp(
                         serial_port=SERIAL_PORT,
                         no_bytes=NO_BYTES,
                         baud_rate=BAUD_RATE,
-                        timeout=1,
+                        timeout=2,
                     )
+                    
 
                 if df is not None:
-                    stream_plot(df, i, j, plot_placeholder)                      
-                    src.save_channels_to_excel(saving_folder, df) # save the data
+                    text_placeholder.text(f"Obtained Measurements = {df.shape[0]}")
+                    if df.shape[0] != 128:
+                        st.warning(f"Warning: Expected 128 samples, but got {df.shape[0]} samples.")
+                        winsound.Beep(800, 700)
+                    stream_plot(df, i, j, plot_placeholder)
+                    src.save_channels_to_excel(saving_folder, df)
 
                 else:
                     st.error(
                         "Failed to capture data. Please check the connection and try again."
                     )
-                if i!=0:
-                    arduino.deflate(i+25)  # deflate a bit more to be safe
+                    
+                if i != 0:
+                    arduino.deflate(i + 25)  # deflate a bit more to be safe
 
         st.toast("Process Completed!", icon="👍")
 
@@ -164,11 +177,10 @@ def main():
         page_title="Automated Data Capture",
         page_icon="🎈",
     )
-    
+
     mymainpage()
     mysidebar()
 
 
 if __name__ == "__main__":
     main()
-    

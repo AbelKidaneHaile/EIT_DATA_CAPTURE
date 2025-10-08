@@ -31,10 +31,19 @@ def read_frame_opp(serial_port, no_bytes, baud_rate=2_000_000, timeout=1):
         with serial.Serial(serial_port, baud_rate, timeout=timeout) as ser:
             ser.write(b"U")
             data = ser.read(no_bytes)
+            ser.reset_input_buffer()   # clears input buffer (RX)
+            ser.reset_output_buffer()  # clears output buffer (TX)
+            
             if data:
+                while len(data) < no_bytes:
+                    print(f'The no_bytes received is {len(data)}. Re-attampting to read data again...')
+                    ser.write(b"U")
+                    data = ser.read(no_bytes)
+                    ser.reset_input_buffer() 
+                    ser.reset_output_buffer()  
+
                 data = np.frombuffer(data, dtype=np.uint8)
 
-                # print("\n\n", len(data), data)
                 # Extract Channels
                 Channel_A = []
                 Channel_B = []
@@ -60,7 +69,7 @@ def read_frame_opp(serial_port, no_bytes, baud_rate=2_000_000, timeout=1):
                 rep_B = np.repeat(Averages, 4)
 
                 Current_In = 1
-                correction_ratio = 3 * Current_In / Channel_B
+                correction_ratio = 2*Current_In / Channel_B
                 Channel_C = Channel_A * correction_ratio
 
                 df = pd.DataFrame(
