@@ -16,7 +16,8 @@ import src
 SERIAL_PORT = "COM3"
 BAUD_RATE = 2_000_000
 NO_BYTES = 512  # 512 # 3712 #
-MAX_PROGRESS = 24
+# NO_BYTES = 832  # for adjacent top-ring
+# MAX_PROGRESS = 24
 
 # streamlit customization
 st.set_page_config(layout="wide")
@@ -37,10 +38,23 @@ def stream_plot(df, i, j, plot_placeholder):
     fig.add_trace(go.Scatter(y=df["Channel_B"], mode="lines", name="Channel B"))
     fig.add_trace(go.Scatter(y=df["Channel_C"], mode="lines", name="Channel C"))
 
-    for x in range(0, len(df), 4):
+    for x in range(0, len(df), 13):
         fig.add_vline(
             x=x, line=dict(color="red", dash="dash"), opacity=0.7  # dashed red line
         )
+    
+    # current = 0
+    # q = 13   
+    # for i in range(16):
+    #     fig.add_vline(
+    #         x=current, line=dict(color="red", dash="dash"), opacity=0.7  # dashed red line
+    #     )
+    #     if i % 2 == 0:
+    #         current += q - 1  # first step
+    #     else:
+    #         current += 1
+        
+    
     fig.update_layout(
         title=f"Class-{i} Frame-{j}",
         xaxis_title="Sequence Index",
@@ -135,7 +149,7 @@ def mymainpage():
         # Empty the balloons
         # arduino.deflate(20)
 
-        for j in range(iteration_number):
+        for j in range(iteration_number): 
             # define the saving paths here
             # src.create_folder(experiment_number, i)
             # saving_folder = f"Data/Experiment_{experiment_number}/Class_{i}"
@@ -144,28 +158,35 @@ def mymainpage():
                 saving_folder = f"Data/Experiment_{experiment_number}/Class_{i}"
                 if i != 0:
                     arduino.inflate(i)
-                with st.spinner("Wait for it...", show_time=True):
-                    df = src.read_frame_opp(
-                        serial_port=SERIAL_PORT,
-                        no_bytes=NO_BYTES,
-                        baud_rate=BAUD_RATE,
-                        timeout=2,
-                    )
-                    
+                
+ 
+                for r in range(20):
+                    with st.spinner("Wait for it...", show_time=True):
+                        df = src.read_frame_opp(
+                            serial_port=SERIAL_PORT,
+                            no_bytes=NO_BYTES,
+                            baud_rate=BAUD_RATE,
+                            timeout=2,
+                        )
+                        
 
-                if df is not None:
-                    text_placeholder.text(f"Obtained Measurements = {df.shape[0]}")
-                    if df.shape[0] != 128:
-                        st.warning(f"Warning: Expected 128 samples, but got {df.shape[0]} samples.")
-                        winsound.Beep(800, 700)
-                    stream_plot(df, i, j, plot_placeholder)
-                    src.save_channels_to_excel(saving_folder, df)
+                    if df is not None:
+                        text_placeholder.text(f"Obtained Measurements = {df.shape[0]}")
+                        if df.shape[0] != 128: #128 208
+                            st.warning(f"Warning: Expected 128 samples, but got {df.shape[0]} samples.")
+                            winsound.Beep(800, 700)
+                        stream_plot(df, i, r, plot_placeholder)
+                        src.save_channels_to_excel(saving_folder, df)
 
-                else:
-                    st.error(
-                        "Failed to capture data. Please check the connection and try again."
-                    )
-                    
+                    else:
+                        st.error(
+                            "Failed to capture data. Please check the connection and try again."
+                        )
+                
+                
+                
+                
+                   
                 if i != 0:
                     arduino.deflate(i + 25)  # deflate a bit more to be safe
 

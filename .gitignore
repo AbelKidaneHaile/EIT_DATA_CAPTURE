@@ -12,6 +12,12 @@ model/
 torch_models/
 scaler/
 images/
+CD/
+CG/
+deleteme/
+generated_ES/
+scaler/
+
 
 # custom snippets
 test.ipynb
