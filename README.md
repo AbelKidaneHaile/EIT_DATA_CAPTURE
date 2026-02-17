@@ -5,8 +5,8 @@
 We are currently building a new website to lanuch this project as a startup. 
 👉 [electrical-impedance-tomography.vercel.app](https://electrical-impedance-tomography.vercel.app/)
 
-[![Static Badge](https://img.shields.io/badge/Visit%20Website%2C%20Online%2C%20blue?logo=web)
-(BADGE_URL)](https://your-link.com)
+[![Website](https://img.shields.io/badge/Website-Online-blue?style=for-the-badge)](https://electrical-impedance-tomography.vercel.app/)
+
 
 ## Experimental Set-up
 The image below is the full set up for 3-D EIT that can be easily configured for any type of excitation and measurement pattern, & it can also be used for 2-D EIT. 
@@ -14,5 +14,6 @@ The image below is the full set up for 3-D EIT that can be easily configured for
 ![Full Setup](images/fullsetup.png)
 
 N.B. The full code has not been disclosed publicly.
+
 
 
